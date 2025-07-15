@@ -19,6 +19,7 @@ from library.models import (
     Actor,
     Director,
     Movie,
+    Genre,
 )
 
 
@@ -34,6 +35,7 @@ admin.site.register(Review)
 admin.site.register(AuthorDetail)
 admin.site.register(Event)
 admin.site.register(EventParticipant)
+admin.site.register(Genre)
 
 class BookAdmin(admin.ModelAdmin):
     def update_created_at(self, request, queryset):
