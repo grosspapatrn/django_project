@@ -1,9 +1,42 @@
 from django.db.models import F
 from django.db.models.functions import Concat
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from TaskManager.models import Task, SubTask
 from django.utils import timezone
 from datetime import timedelta
+from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .serializers import TaskSerializer
+from django.db.models import Count
+
+class TaskCreateView(generics.CreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+
+class TaskListView(generics.ListAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+
+class TaskDetailView(generics.RetrieveAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    lookup_field = 'id'
+
+
+class TaskStatsView(APIView):
+    def get(self, request):
+        total_tasks = Task.objects.count()
+        status_counts = Task.objects.values('status').annotate(count=Count('status'))
+        overdue_tasks = Task.objects.filter(deadline__lt=timezone.now()).count()
+        return Response({
+            'total_tasks': total_tasks,
+            'status_counts': status_counts,
+            'overdue_tasks': overdue_tasks,
+        })
+
 
 
 # creating some function to create a task & subtask
