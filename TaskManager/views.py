@@ -1,6 +1,7 @@
 from django.db.models import F
 from django.db.models.functions import Concat
 from django.http import HttpResponse, JsonResponse
+from rest_framework.pagination import PageNumberPagination
 from TaskManager.models import Task, SubTask
 from django.utils import timezone
 from datetime import timedelta
@@ -9,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import TaskSerializer, SubTaskSerializer
 from django.db.models import Count
+from django.db.models.functions import ExtractWeekDay
 
 class TaskCreateView(generics.CreateAPIView):
     queryset = Task.objects.all()
@@ -38,14 +40,91 @@ class TaskStatsView(APIView):
         })
 
 
-class SubTaskListCreateView(generics.ListCreateAPIView):
-    queryset = SubTask.objects.all()
+# class SubTaskListCreateView(generics.ListCreateAPIView):
+#     queryset = SubTask.objects.all()
+#     serializer_class = SubTaskSerializer
+
+class SubTaskListView(APIView, PageNumberPagination):
+    page_size = 5
+
+    def get(self, request):
+        subtasks = SubTask.objects.order_by('-created_at')
+        results = self.paginate_queryset(subtasks, request, view=self)
+        serializer = SubTaskSerializer(results, many=True)
+        # page_size = self.get_page_size(request)
+        # self.page_size = page_size
+        # results = self.paginate_queryset(subtasks, request, page_size)
+        # serializer = SubTaskSerializer(subtasks, many=True)
+        return self.get_paginated_response(serializer.data)
+
+
+    def get_page_size(self, request):
+        page_size = request.query_params.get('page_size')
+        if page_size and page_size.isdigit():
+            return int(page_size)
+        return self.page_size
+
+
+STATUS_CHOICES = {
+    'new': 'New',
+    'in_progress': 'In Progress',
+    'pending': 'Pending',
+    'blocked': 'Blocked',
+    'done': 'Done'
+}
+
+
+class SubTaskFilteredListView(generics.ListAPIView):
     serializer_class = SubTaskSerializer
+
+    def get_queryset(self):
+        queryset = SubTask.objects.select_related('task')
+
+        task_title = self.request.query_params.get('title')
+        if task_title:
+            queryset = queryset.filter(task__title__icontains=task_title)
+
+        status = self.request.query_params.get('status')
+        if status in STATUS_CHOICES:
+            queryset = queryset.filter(status=status)
+
+        return queryset
 
 
 class SubTaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = SubTask.objects.all()
     serializer_class = SubTaskSerializer
+
+weekdays = {
+    'monday': 2,
+    'tuesday': 3,
+    'wednesday': 4,
+    'thursday': 5,
+    'friday': 6,
+    'saturday': 7,
+    'sunday': 1,
+}
+
+
+class TaskByWeekDayView(APIView):
+    def get(self, request, *args, **kwargs):
+        day_param = request.query_params.get('day', '').strip().lower()
+
+        queryset = Task.objects.annotate(weekday=ExtractWeekDay('created_at'))
+
+        if day_param and day_param in weekdays:
+            weekday_number = weekdays[day_param]
+            founded_tasks = queryset.filter(weekday=weekday_number)
+
+            if not founded_tasks.exists():
+                founded_tasks = queryset
+
+        else:
+            founded_tasks = queryset
+
+        serializer = TaskSerializer(founded_tasks, many=True)
+        return Response(serializer.data)
+
 
 
 
