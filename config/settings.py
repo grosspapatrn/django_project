@@ -30,7 +30,8 @@ INSTALLED_APPS = [
     'library',
     'TaskManager',
     'rest_framework',
-    'shop'
+    'shop',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
