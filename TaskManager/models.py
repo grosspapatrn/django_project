@@ -83,6 +83,7 @@ class Category(models.Model):
     # creating some fields
     name = models.CharField(max_length=50)
     description = models.TextField(default=None, null=True, blank=True)
+    objects = models.Manager()
 
     # creating a stroke method
     def __str__(self):

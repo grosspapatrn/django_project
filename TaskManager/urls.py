@@ -11,6 +11,8 @@ from TaskManager.views import (
     TaskListView,
     TaskDetailView,
     TaskStatsView,
+    SubTaskListCreateView,
+    SubTaskDetailView,
 )
 
 urlpatterns = [
@@ -25,4 +27,6 @@ urlpatterns = [
     path('tasks/', TaskListView.as_view(), name='task-list'),
     path('tasks/<int:id>/', TaskDetailView.as_view(), name='task-detail'),
     path('tasks/stats/', TaskStatsView.as_view(), name='task-stats'),
+    path('subtask/', SubTaskListCreateView.as_view(), name='subtask-list'),
+    path('subtask/<int:pk>', SubTaskDetailView.as_view(), name='subtask-detail-update-delete'),
 ]

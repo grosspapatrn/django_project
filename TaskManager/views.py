@@ -7,7 +7,7 @@ from datetime import timedelta
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import TaskSerializer
+from .serializers import TaskSerializer, SubTaskSerializer
 from django.db.models import Count
 
 class TaskCreateView(generics.CreateAPIView):
@@ -36,6 +36,17 @@ class TaskStatsView(APIView):
             'status_counts': status_counts,
             'overdue_tasks': overdue_tasks,
         })
+
+
+class SubTaskListCreateView(generics.ListCreateAPIView):
+    queryset = SubTask.objects.all()
+    serializer_class = SubTaskSerializer
+
+
+class SubTaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = SubTask.objects.all()
+    serializer_class = SubTaskSerializer
+
 
 
 
