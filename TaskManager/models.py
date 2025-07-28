@@ -84,6 +84,13 @@ class Category(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField(default=None, null=True, blank=True)
     objects = models.Manager()
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    def delete(self, using=None, keep_parents=False):
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save()
 
     # creating a stroke method
     def __str__(self):

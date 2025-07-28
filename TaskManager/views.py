@@ -2,15 +2,16 @@ from django.db.migrations import serializer
 from django.db.models import F
 from django.db.models.functions import Concat
 from django.http import HttpResponse, JsonResponse
+from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.pagination import PageNumberPagination
-from TaskManager.models import Task, SubTask
+from TaskManager.models import Task, SubTask, Category
 from django.utils import timezone
 from datetime import timedelta
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import TaskSerializer, SubTaskSerializer
+from .serializers import TaskSerializer, SubTaskSerializer, CategoryCreateSerializer
 from django.db.models import Count
 from django.db.models.functions import ExtractWeekDay
 from django_filters.rest_framework import DjangoFilterBackend
@@ -201,6 +202,23 @@ class TaskByWeekDayView(APIView):
         serializer = TaskSerializer(founded_tasks, many=True)
         return Response(serializer.data)
 
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.filter(is_deleted=False)
+    serializer_class = CategoryCreateSerializer
+
+    @action(detail=False, methods=['get'])
+    def count_tasks(self, request):
+        tasks_count = Category.objects.annotate(amount=Count('tasks'))
+        data = [
+            {
+                'id': category.id,
+                'category': category.name,
+                'task_count': category.amount
+            }
+            for category in tasks_count
+        ]
+        return Response(data)
 
 
 # class TaskCreateView(generics.CreateAPIView):
