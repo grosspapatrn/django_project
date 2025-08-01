@@ -53,44 +53,44 @@ MIDDLEWARE = [
 ]
 
 
-# logging to save all system notifications into fileы
+# logging to save all system notifications into files
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+
+    # HTTP requests into http_logs.log
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
         },
+        'http_file': {
+            'class': 'logging.FileHandler',
+            'filename': 'logs/http_logs.log',
+        },
+        'db_file': {
+            'class': 'logging.FileHandler',
+            'filename': 'logs/db_logs.log',
+        },
     },
+
+    # SQL requests into db_logs.log
+    'loggers': {
+        'django.server': {
+            'handlers': ['http_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['db_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+
     'root': {
         'handlers': ['console'],
         'level': 'INFO',
     },
-}
-
-# HTTP requests into http_logs.log
-LOGGING['handlers']['http_file'] = {
-    'class': 'logging.FileHandler',
-    'filename': 'logs/http_logs.log',
-}
-
-LOGGING['loggers']['django.server'] = {
-    'handlers': ['http_file'],
-    'level': 'INFO',
-    'propagate': False,
-}
-
-
-# SQL requests into db_logs.log
-LOGGING['handlers']['db_file'] = {
-    'class': 'logging.FileHandler',
-    'filename': 'logs/db_logs.log',
-}
-
-LOGGING['loggers']['django.db.backends'] = {
-    'handlers': ['db_file'],
-    'level': 'DEBUG',
-    'propagate': False,
 }
 
 
