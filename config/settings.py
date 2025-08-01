@@ -34,6 +34,14 @@ INSTALLED_APPS = [
     'django_filters'
 ]
 
+
+# creating a global pagination class with max size at 6 objects
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
+    'PAGE_SIZE': 6
+}
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -43,6 +51,48 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+# logging to save all system notifications into fileы
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+
+# HTTP requests into http_logs.log
+LOGGING['handlers']['http_file'] = {
+    'class': 'logging.FileHandler',
+    'filename': 'logs/http_logs.log',
+}
+
+LOGGING['loggers']['django.server'] = {
+    'handlers': ['http_file'],
+    'level': 'INFO',
+    'propagate': False,
+}
+
+
+# SQL requests into db_logs.log
+LOGGING['handlers']['db_file'] = {
+    'class': 'logging.FileHandler',
+    'filename': 'logs/db_logs.log',
+}
+
+LOGGING['loggers']['django.db.backends'] = {
+    'handlers': ['db_file'],
+    'level': 'DEBUG',
+    'propagate': False,
+}
+
 
 ROOT_URLCONF = 'config.urls'
 
