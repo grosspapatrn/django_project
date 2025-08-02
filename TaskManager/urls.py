@@ -29,6 +29,7 @@ from TaskManager.views import (
 
 router = DefaultRouter()
 router.register(r'categories', CategoryViewSet, basename='category')
+router.register(r'tasks', TaskListCreateView, basename='task')
 
 urlpatterns = [
     # path('create_task', view=create_task),
@@ -40,7 +41,8 @@ urlpatterns = [
     # path('delete_task', view=delete_task),
     # path('tasks/create/', TaskCreateView.as_view(), name='task-create'),
 
-    path('tasks/', TaskListCreateView.as_view(), name='task-list'),
+    # path('tasks/', TaskListCreateView.as_view(), name='task-list'),
+    path('tasks/tasks/', include(router.urls)),
     path('tasks/<int:pk>/', TasksDetailUpdateDeleteView.as_view(), name='task-detail'),
     path('tasks/by_weekday/', TaskByWeekDayView.as_view(), name='task-by-weekday'),
 

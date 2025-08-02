@@ -16,6 +16,7 @@ class TaskSerializer(serializers.ModelSerializer):
             'description',
             'status',
             'deadline',
+            'created_at',
         ]
 
 
@@ -69,6 +70,7 @@ class TaskDetailSerializer(serializers.ModelSerializer):
             'description',
             'status',
             'deadline',
+            'created_at',
         ]
 
 

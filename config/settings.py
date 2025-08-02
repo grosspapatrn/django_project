@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import timedelta
 import environ
 
 # loading .env file
@@ -35,11 +36,21 @@ INSTALLED_APPS = [
 ]
 
 
-# creating a global pagination class with max size at 6 objects
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # creating jwt authentication
+        'rest_framework.authentication.SessionAuthentication',
+    ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
-    'PAGE_SIZE': 6
+    'PAGE_SIZE': 5
 }
+
+# setting simple jwt config
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+
 
 
 MIDDLEWARE = [
@@ -53,44 +64,44 @@ MIDDLEWARE = [
 ]
 
 
-# logging to save all system notifications into fileы
+# logging to save all system notifications into files
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+
+    # HTTP requests into http_logs.log
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
         },
+        'http_file': {
+            'class': 'logging.FileHandler',
+            'filename': 'logs/http_logs.log',
+        },
+        'db_file': {
+            'class': 'logging.FileHandler',
+            'filename': 'logs/db_logs.log',
+        },
     },
+
+    # SQL requests into db_logs.log
+    'loggers': {
+        'django.server': {
+            'handlers': ['http_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['db_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+
     'root': {
         'handlers': ['console'],
         'level': 'INFO',
     },
-}
-
-# HTTP requests into http_logs.log
-LOGGING['handlers']['http_file'] = {
-    'class': 'logging.FileHandler',
-    'filename': 'logs/http_logs.log',
-}
-
-LOGGING['loggers']['django.server'] = {
-    'handlers': ['http_file'],
-    'level': 'INFO',
-    'propagate': False,
-}
-
-
-# SQL requests into db_logs.log
-LOGGING['handlers']['db_file'] = {
-    'class': 'logging.FileHandler',
-    'filename': 'logs/db_logs.log',
-}
-
-LOGGING['loggers']['django.db.backends'] = {
-    'handlers': ['db_file'],
-    'level': 'DEBUG',
-    'propagate': False,
 }
 
 

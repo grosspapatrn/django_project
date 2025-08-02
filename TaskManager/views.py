@@ -5,12 +5,17 @@ from django.http import HttpResponse, JsonResponse
 from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ModelViewSet
+
 from TaskManager.models import Task, SubTask, Category
 from django.utils import timezone
 from datetime import timedelta
 from rest_framework import generics, status, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from utils.permissions import IsProjectManager
 from .serializers import TaskSerializer, SubTaskSerializer, CategoryCreateSerializer
 from django.db.models import Count
 from django.db.models.functions import ExtractWeekDay
@@ -18,25 +23,30 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
 
-class TaskListCreateView(generics.ListCreateAPIView):
+class TaskListCreateView(ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'deadline']
-    search_fields = ['title', 'description']
-    ordering_fields = ['created_at']
+    # filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    # filterset_fields = ['status', 'deadline']
+    # search_fields = ['title', 'description']
+    # ordering_fields = ['created_at']
+    permission_classes = [IsAuthenticated]
 
-
-    def get(self, request, *args, **kwargs):
-        tasks = self.get_queryset()
-        serializer = self.get_serializer(tasks, many=True)
-        return Response(serializer.data)
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+    # def get(self, request, *args, **kwargs):
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     page = self.paginate_queryset(queryset)
+    #     if page is not None:
+    #         serializer = self.get_serializer(page, many=True)
+    #         return self.get_paginated_response(serializer.data)
+    #
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+    #
+    # def post(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+    #     return Response(serializer.data)
 
 class TasksDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
@@ -45,6 +55,7 @@ class TasksDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     filterset_fields = ['status', 'deadline']
     search_fields = ['title', 'description']
     ordering_fields = ['created_at']
+    permission_classes = [IsProjectManager]
 
     def get(self, requset, *args, **kwargs):
         task = self.get_object()
@@ -79,6 +90,7 @@ class SubTaskListCreateView(generics.ListCreateAPIView):
     filterset_fields = ['status', 'deadline']
     search_fields = ['title', 'description']
     ordering_fields = ['created_at']
+    permission_classes = [IsProjectManager]
 
     def get(self, requset, *args, **kwargs):
         subtasks = self.get_queryset()
