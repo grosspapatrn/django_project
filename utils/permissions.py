@@ -7,3 +7,8 @@ class IsProjectManager(permissions.BasePermission):
             return False
 
         return request.user.is_superuser or request.user.is_staff
+
+
+class IsOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.owner == request.user

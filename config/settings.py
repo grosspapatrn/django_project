@@ -32,7 +32,9 @@ INSTALLED_APPS = [
     'TaskManager',
     'rest_framework',
     'shop',
-    'django_filters'
+    'django_filters',
+    'rest_framework.authtoken',
+    'drf_yasg'
 ]
 
 

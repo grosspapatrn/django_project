@@ -7,15 +7,13 @@ from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
-
 from TaskManager.models import Task, SubTask, Category
 from django.utils import timezone
 from datetime import timedelta
 from rest_framework import generics, status, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
-from utils.permissions import IsProjectManager
+from utils.permissions import IsProjectManager, IsOwner
 from .serializers import TaskSerializer, SubTaskSerializer, CategoryCreateSerializer
 from django.db.models import Count
 from django.db.models.functions import ExtractWeekDay
@@ -23,30 +21,48 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
 
-class TaskListCreateView(ModelViewSet):
-    queryset = Task.objects.all()
+class TaskListCreateView(generics.ListCreateAPIView):
+    queryset = Task.objects.all().order_by('-created_at')
     serializer_class = TaskSerializer
-    # filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    # filterset_fields = ['status', 'deadline']
-    # search_fields = ['title', 'description']
-    # ordering_fields = ['created_at']
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['status', 'deadline']
+    search_fields = ['title', 'description']
+    ordering_fields = ['created_at']
     permission_classes = [IsAuthenticated]
 
-    # def get(self, request, *args, **kwargs):
-    #     queryset = self.filter_queryset(self.get_queryset())
-    #     page = self.paginate_queryset(queryset)
-    #     if page is not None:
-    #         serializer = self.get_serializer(page, many=True)
-    #         return self.get_paginated_response(serializer.data)
-    #
-    #     serializer = self.get_serializer(queryset, many=True)
-    #     return Response(serializer.data)
-    #
-    # def post(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     serializer.save()
-    #     return Response(serializer.data)
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, request.user)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def perform_create(self, obj):
+        obj.save(owner=self.request.user)
+
+
+class MyTasksView(generics.ListAPIView):
+    serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Task.objects.filter(owner=self.request.user)
+
+
+class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+
 
 class TasksDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
@@ -136,21 +152,6 @@ class SubTaskDetailUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         subtask.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-# class SubTaskListView(APIView, PageNumberPagination):
-#     page_size = 5
-#
-#     def get(self, request):
-#         subtasks = SubTask.objects.order_by('-created_at')
-#         results = self.paginate_queryset(subtasks, request, view=self)
-#         serializer = SubTaskSerializer(results, many=True)
-#         return self.get_paginated_response(serializer.data)
-#
-#     def get_page_size(self, request):
-#         page_size = request.query_params.get('page_size')
-#         if page_size and page_size.isdigit():
-#             return int(page_size)
-#         return self.page_size
 
 
 STATUS_CHOICES = {
