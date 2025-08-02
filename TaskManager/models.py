@@ -1,8 +1,9 @@
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser, Group, Permission
 
+from config import settings
 
 # creating a variable with +1 day
 one_day_more = timezone.now() + timedelta(days=1)
@@ -23,7 +24,7 @@ class Task(models.Model):
     # creating some fields
     title = models.CharField(max_length=100, unique=True)
     description = models.TextField(default=None, null=False, blank=False)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='taskmanager_tasks')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
     categories = models.ManyToManyField('Category', related_name='tasks')
     status = models.CharField(choices=TASK_STATUS_CHOICES)
     deadline = models.DateTimeField(default=one_day_more)
@@ -56,7 +57,7 @@ class SubTask(models.Model):
     title = models.CharField(max_length=100, unique=True)
     description = models.TextField(default=None, null=False, blank=False)
     task = models.ForeignKey('Task', related_name='subtasks', on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='taskmanager_subtasks')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
     status = models.CharField(choices=TASK_STATUS_CHOICES)
     deadline = models.DateTimeField(default=one_day_more)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -105,3 +106,17 @@ class Category(models.Model):
         verbose_name = 'Category'
         verbose_name_plural = 'Categories'
         constraints = [models.UniqueConstraint(fields=['name'], name='unique_category_name')]
+
+
+class CustomUser(AbstractUser):
+    email = models.EmailField(unique=True)
+    groups = models.ManyToManyField(
+        Group,
+        related_name='customuser_set',
+        blank=True
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        related_name='customuser_permissions_set',
+        blank=True
+    )

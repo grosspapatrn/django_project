@@ -34,7 +34,8 @@ INSTALLED_APPS = [
     'shop',
     'django_filters',
     'rest_framework.authtoken',
-    'drf_yasg'
+    'drf_yasg',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 
@@ -49,10 +50,14 @@ REST_FRAMEWORK = {
 
 # setting simple jwt config
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
+
+AUTH_USER_MODEL = 'TaskManager.CustomUser'
 
 
 MIDDLEWARE = [

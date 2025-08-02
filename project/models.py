@@ -77,7 +77,7 @@ class Task(models.Model):
     due_date = models.DateTimeField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, related_name='tasks', blank=True)
 
-    assignee = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='tasks', null=True, blank=True)
+    # assignee = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='tasks', null=True, blank=True)
 
     def __str__(self):
         return self.name
